@@ -31,6 +31,10 @@ international_scholarships.columns = international_scholarships.columns.str.stri
 def serve_react():
     return send_from_directory(app.static_folder, 'index.html')
 
+@app.route('/<path:path>')
+def serve_static_files(path):
+    return send_from_directory(app.static_folder, path)
+
 
 
 
