@@ -37,6 +37,25 @@ def serve_static_files(path):
 
 
 
+@app.route('/submit_contact', methods=['POST'])
+def submit_contact():
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        with open(CONTACT_FILE, "r") as f:
+            existing_data = json.load(f)
+
+        existing_data.append(data)
+
+        with open(CONTACT_FILE, "w") as f:
+            json.dump(existing_data, f, indent=4)
+
+        return jsonify({"message": "Form submitted successfully!"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
