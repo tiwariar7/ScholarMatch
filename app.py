@@ -56,6 +56,40 @@ def submit_contact():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/find_indian_scholarships', methods=['POST'])
+def find_indian_scholarships():
+    try:
+        user_input = request.get_json()
+        if not user_input:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        filtered_df = govt_scholarships.copy()
+        
+        criteria_mapping = {
+            "education": "education qualification",
+            "gender": "gender",
+            "community": "community",
+            "religion": "religion",
+            "isExServiceman": "exservice-men",
+            "hasDisability": "disability",
+            "hasSportsAchievements": "sports",
+            "annualPercentage": "annual-percentage",
+            "income": "income"
+        }
+        
+        for key, column in criteria_mapping.items():
+            if key in user_input and column in filtered_df.columns:
+                value = user_input[key]
+                if value:
+                    if column in ["exservice-men", "disability", "sports"]:
+                        value = "Yes" if value else "No"
+                    filtered_df = filtered_df[filtered_df[column].astype(str).str.lower() == str(value).lower()]
+
+        result = filtered_df[filtered_df['outcome'] == 1]['name'].tolist()
+        return jsonify({'matching_scholarships': result})
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
