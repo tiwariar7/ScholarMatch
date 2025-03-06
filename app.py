@@ -91,5 +91,30 @@ def find_indian_scholarships():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/find_international_scholarships', methods=['POST'])
+def find_international_scholarships():
+    try:
+        user_input = request.get_json()
+        if not user_input:
+            return jsonify({"error": "Invalid request data"}), 400
+
+        filtered_df = international_scholarships.copy()
+        valid_columns = filtered_df.columns.str.lower()
+
+        for key, value in user_input.items():
+            key_lower = key.lower()
+            if key_lower in valid_columns and value:
+                filtered_df = filtered_df[filtered_df[key_lower].astype(str).str.contains(str(value), case=False, na=False)]
+
+        if filtered_df.empty:
+            return jsonify({'matching_scholarships': []})
+
+        result = filtered_df.to_dict(orient='records')
+        return jsonify({'matching_scholarships': result})
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
