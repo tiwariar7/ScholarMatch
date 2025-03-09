@@ -112,6 +112,36 @@ def find_international_scholarships():
         result = filtered_df.to_dict(orient='records')
         return jsonify({'matching_scholarships': result})
 
+
+def get_users():
+    if not os.path.exists(USERS_FILE):
+        return []
+    with open(USERS_FILE, "r") as file:
+        return json.load(file)
+
+def save_users(users):
+    with open(USERS_FILE, "w") as file:
+        json.dump(users, file, indent=2)
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    data = request.json
+    name = data.get("name")
+    email = data.get("email")
+    password = data.get("password")
+
+    users = get_users()
+
+    if any(user["email"] == email for user in users):
+        return jsonify({"message": "User already exists"}), 400
+
+    hashed_password = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+    users.append({"name": name, "email": email, "password": hashed_password})
+    save_users(users)
+
+    return jsonify({"message": "User registered successfully"}), 201
+
+
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
