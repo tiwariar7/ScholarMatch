@@ -145,6 +145,23 @@ def signup():
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
+@app.route("/signin", methods=["POST"])
+def signin():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+
+    users = get_users()
+    user = next((user for user in users if user["email"] == email), None)
+
+    if not user:
+        return jsonify({"message": "User not found"}), 400
+
+    if not bcrypt.checkpw(password.encode("utf-8"), user["password"].encode("utf-8")):
+        return jsonify({"message": "Invalid password"}), 400
+
+    return jsonify({"message": "Login successful", "user": {"name": user["name"], "email": user["email"]}}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
